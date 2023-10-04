@@ -6,8 +6,8 @@ class File extends Model { }
 File.init(
     {
         id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
+            type: DataTypes.STRING,
+            autoIncrement: false,
             primaryKey: true
         },
         name: {
@@ -22,7 +22,7 @@ File.init(
         size: {
             type: DataTypes.INTEGER,
         },
-        createdDate: {
+        uploadDate: {
             type: DataTypes.DATE,
         },
     }, 

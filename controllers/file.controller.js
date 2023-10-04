@@ -11,8 +11,8 @@ const storage = multer.diskStorage({
         callback(null, './uploads/');
     },
     filename: (req, file, callback) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        callback(null, file.originalname);
+        const uniqueSuffix = Date.now()+path.extname(file.originalname);
+        callback(null, uniqueSuffix);
     },
 });
 const upload = multer({ storage });
@@ -29,28 +29,28 @@ export function uploadFile(req, res) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const { originalname, size, mimetype } = req.file;
-
+        const { originalname, size, mimetype, filename } = req.file;
+        const name = path.parse(originalname).name
         File.create({
-            name: originalname,
+            id: path.parse(filename).name,
+            name,
             extension: path.extname(originalname),
             mimeType: mimetype,
             size,
-            createdDate: new Date()
+            uploadDate: new Date()
         })
             .then(file => {
                 res.status(201).json({ ...file.dataValues });
             })
             .catch(error => {
-                console.error('Error deleting file:', error);
-                res.status(500).json({ message: 'Internal server error' });
+                res.status(500).json({ message: error });
             })
     });
 };
 
 export function getFileInfo(req, res) {
-    const fileId = req.params.id;
-    File.findOne({ where: { id: fileId } })
+    const {id} = req.params;
+    File.findOne({ where: { id } })
         .then(file => {
             if (!file) {
                 return res.status(404).send({ message: "File Not found." });
@@ -62,8 +62,8 @@ export function getFileInfo(req, res) {
         });
 }
 export function deleteFile(req, res) {
-    const fileId = req.params.id;
-    File.findOne({ where: { id: fileId } })
+    const {id} = req.params;
+    File.findOne({ where: { id } })
         .then(async file => {
             if (!file) {
                 return res.status(404).send({ message: "File Not found." });
@@ -78,8 +78,7 @@ export function deleteFile(req, res) {
                 if (error.code === 'ENOENT') {
                     res.status(404).json({ message: 'File not found' });
                 } else {
-                    console.error('Error deleting file:', error);
-                    res.status(500).json({ message: 'Internal server error' });
+                    res.status(500).json({ message: error });
                 }
             }
         })
@@ -89,8 +88,8 @@ export function deleteFile(req, res) {
 }
 
 export function updateFile(req, res) {
-    const fileId = req.params.id;
-    File.findOne({ where: { id: fileId } })
+    const {id} = req.params;
+    File.findOne({ where: { id } })
         .then(async file => {
             if (!file) {
                 return res.status(404).send({ message: "File Not found." });
@@ -116,14 +115,13 @@ export function updateFile(req, res) {
                     extension: path.extname(originalname),
                     mimeType: mimetype,
                     size,
-                    createdDate: new Date()
+                    uploadDate: new Date()
                 }, { where: { id: fileId } })
                     .then(file => {
                         res.status(200).json({ ...file.dataValues });
                     })
                     .catch(error => {
-                        console.error('Error deleting file:', error);
-                        res.status(500).json({ message: 'Internal server error' });
+                        res.status(500).json({ message: error });
                     })
             });
         })
@@ -133,14 +131,14 @@ export function updateFile(req, res) {
 }
 
 export function downloadFile(req, res) {
-    const fileId = req.params.id;
-    File.findOne({ where: { id: fileId } })
+    const { id } = req.params;
+    File.findOne({ where: { id } })
         .then(file => {
             if (!file) {
                 return res.status(404).send({ message: "File Not found." });
             }
-            const filePath =  `./uploads/${file.dataValues.name}`;
-            return res.download(filePath);
+            const filePath =  `./uploads/${file.dataValues.id}${file.dataValues.extension}`;
+            return res.download(filePath, `${file.dataValues.name}${file.dataValues.extension}`);
         })
         .catch(err => {
             res.status(500).send({ message: err.message });
@@ -152,7 +150,6 @@ export function getFileList(req, res){
     const { limit, offset } = getPagination(page-1, list_size);
     File.findAndCountAll({ limit, offset })
         .then(data => {
-            console.log(data);
             const response = getPagingData(data, page, limit);
             return res.send(response);
         })
