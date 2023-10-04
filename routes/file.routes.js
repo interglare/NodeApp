@@ -7,49 +7,49 @@ import {
     downloadFile,
     getFileList,
 } from "./../controllers/file.controller.js";
+import express from 'express';
 
-export default function (app) {
-    app.use(function (req, res, next) {
-        res.header(
-            "Access-Control-Allow-Headers",
-            "x-access-token, Origin, Content-Type, Accept"
-        );
-        next();
-    });
+export const fileRoute = express.Router();
 
-    app.post(
-        "/file/upload",
-        [authJwt.verifyToken],
-        uploadFile
+fileRoute.use(function (req, res, next) {
+    res.header(
+        "Access-Control-Allow-Headers",
+        "x-access-token, Origin, Content-Type, Accept"
     );
+    next();
+});
 
-    app.get(
-        "/file/list",
-        [authJwt.verifyToken],
-        getFileList
-    );
-    app.get(
-        "/file/:id",
-        [authJwt.verifyToken],
-        getFileInfo
-    );
+fileRoute.post(
+    "/file/upload",
+    [authJwt.verifyToken],
+    uploadFile
+);
 
-    app.delete(
-        "/file/delete/:id",
-        [authJwt.verifyToken],
-        deleteFile
-    );
+fileRoute.get(
+    "/file/list",
+    [authJwt.verifyToken],
+    getFileList
+);
+fileRoute.get(
+    "/file/:id",
+    [authJwt.verifyToken],
+    getFileInfo
+);
 
-    app.put(
-        "/file/update/:id",
-        [authJwt.verifyToken],
-        updateFile
-    );
+fileRoute.delete(
+    "/file/delete/:id",
+    [authJwt.verifyToken],
+    deleteFile
+);
 
-    app.get(
-        "/file/download/:id",
-        [authJwt.verifyToken],
-        downloadFile
-    );
+fileRoute.put(
+    "/file/update/:id",
+    [authJwt.verifyToken],
+    updateFile
+);
 
-};
+fileRoute.get(
+    "/file/download/:id",
+    [authJwt.verifyToken],
+    downloadFile
+);
