@@ -1,4 +1,13 @@
-const config = {
+import { Options } from "sequelize";
+
+type configType = Options & {
+    HOST:string
+    USER:string
+    PASSWORD:string
+    DB:string
+}
+
+const config:configType = {
     HOST: "localhost",
     USER: "root",
     PASSWORD: "",

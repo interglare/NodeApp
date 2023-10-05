@@ -4,7 +4,7 @@ import { signup,
     info, 
     new_token,
     logout, 
-} from './../controllers/auth.controller.js';
+} from '../controllers/auth.controller';
 import express from 'express';
 
 export const authRoute = express.Router();

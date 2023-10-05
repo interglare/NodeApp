@@ -1,7 +1,13 @@
 import jwt from 'jsonwebtoken';
-import { invalidatedTokens } from './../config/jwtBlacklist.config.js';
+import { invalidatedTokens } from '../config/jwtBlacklist.config';
+import { NextFunction, Request, Response } from 'express';
+import type { JwtPayload } from "jsonwebtoken";
 
-function verifyToken(req, res, next){
+export type CustomRequest = Request & {
+    id: string | JwtPayload;
+}
+
+function verifyToken(req: Request, res: Response, next: NextFunction){
     const authHeader = req.header("authorization");
     if (!authHeader || authHeader.length < 1) {
         return res.status(403).send({
@@ -18,17 +24,17 @@ function verifyToken(req, res, next){
     if (invalidatedTokens.has(token)) {
         return res.status(403).send({message: "Token was disabled"});
     }
-    jwt.verify(token,
-        "accessSecret",
-        (err, decoded) => {
-            if (err) {
-                return res.status(401).send({
-                    message: "Unauthorized!",
-                });
-            }
-            req.userId = decoded.id;
-            next();
+
+    try {
+        const decoded = jwt.verify(token, "accessSecret") as JwtPayload;
+        (req as CustomRequest).id = decoded.id;
+        next();
+    } catch (error) {       
+        return res.status(401).send({
+            message: "Unauthorized!",
         });
+    }
+
 };
 
 const authJwt = {

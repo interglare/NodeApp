@@ -1,4 +1,4 @@
-import db from './../models/index.js';
+import db from '../models/index';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import {
@@ -7,11 +7,17 @@ import {
   jwtSignRefreshToken,
   regexExp,
   validatePassword,
-} from './../helper/helper.js';
-import { invalidatedTokens } from './../config/jwtBlacklist.config.js';
+} from '../helper/helper';
+import { invalidatedTokens } from '../config/jwtBlacklist.config';
+import {Request, Response} from 'express';
+import type { JwtPayload } from "jsonwebtoken";
+
+type DecodedTokenType = {
+  id: string;
+}
 
 const User = db.user;
-export function signup(req, res) {
+export function signup(req: Request, res: Response) {
   const { id, password } = req.body;
 
   if (!password) {
@@ -44,7 +50,7 @@ export function signup(req, res) {
     });
 };
 
-export function signin(req, res) {
+export function signin(req: Request, res: Response) {
   const { id, password } = req.body;
 
   if (!id) {
@@ -86,10 +92,10 @@ export function signin(req, res) {
     });
 };
 
-export function new_token(req, res) {
+export function new_token(req: Request, res: Response) {
   const { refreshToken } = req.body;
 
-  const decoded = jwt.decode(refreshToken);
+  const decoded = jwt.decode(refreshToken) as JwtPayload;
 
   if (!decoded.id) {
     return res
@@ -113,20 +119,20 @@ export function new_token(req, res) {
   });
 }
 
-export function info(req, res) {
+export function info(req: Request, res: Response) {
   const authHeader = req.header("authorization");
   const bearerToken = authHeader.split(' ')[1];
-  const decoded = jwt.decode(bearerToken);
+  const decoded = jwt.decode(bearerToken) as JwtPayload;
 
   return res
     .status(200)
     .json({ id: decoded.id });
 }
 
-export function logout(req, res) {
+export function logout(req: Request, res: Response) {
   const authHeader = req.header("authorization");
   const bearerToken = authHeader.split(' ')[1];
-  const decoded = jwt.decode(bearerToken);
+  const decoded = jwt.decode(bearerToken) as JwtPayload;
   
   const newRefreshToken = jwtSignRefreshToken(decoded.id); 
   invalidatedTokens.add(bearerToken);

@@ -1,8 +1,9 @@
 import multer from 'multer';
 import path from 'path';
 import { promises as fsPromises } from 'fs';
-import db from './../models/index.js';
-import { getPagination, getPagingData } from '../helper/helper.js';
+import db from '../models/index';
+import { getPagination, getPagingData } from '../helper/helper';
+import {Request, Response} from 'express';
 
 const File = db.file;
 
@@ -17,7 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-export function uploadFile(req, res) {
+export function uploadFile(req: Request, res: Response) {
     const singleUpload = upload.single('file');
 
     singleUpload(req, res, (err) => {
@@ -48,7 +49,7 @@ export function uploadFile(req, res) {
     });
 };
 
-export function getFileInfo(req, res) {
+export function getFileInfo(req: Request, res: Response) {
     const {id} = req.params;
     File.findOne({ where: { id } })
         .then(file => {
@@ -61,7 +62,7 @@ export function getFileInfo(req, res) {
             res.status(500).send({ message: err.message });
         });
 }
-export function deleteFile(req, res) {
+export function deleteFile(req: Request, res: Response) {
     const {id} = req.params;
     File.findOne({ where: { id } })
         .then(async file => {
@@ -74,7 +75,7 @@ export function deleteFile(req, res) {
                 await fsPromises.unlink(filePath);
 
                 res.status(200).json({ message: 'File deleted successfully' });
-            } catch (error) {
+            } catch (error:any) {               
                 if (error.code === 'ENOENT') {
                     res.status(404).json({ message: 'File not found' });
                 } else {
@@ -87,7 +88,7 @@ export function deleteFile(req, res) {
         });
 }
 
-export function updateFile(req, res) {
+export function updateFile(req: Request, res: Response) {
     const {id} = req.params;
     File.findOne({ where: { id } })
         .then(async file => {
@@ -116,9 +117,9 @@ export function updateFile(req, res) {
                     mimeType: mimetype,
                     size,
                     uploadDate: new Date()
-                }, { where: { id: fileId } })
+                }, { where: { id } })
                     .then(file => {
-                        res.status(200).json({ ...file.dataValues });
+                        res.status(200)//.json({ ...file.dataValues });
                     })
                     .catch(error => {
                         res.status(500).json({ message: error });
@@ -130,7 +131,7 @@ export function updateFile(req, res) {
         });
 }
 
-export function downloadFile(req, res) {
+export function downloadFile(req: Request, res: Response) {
     const { id } = req.params;
     File.findOne({ where: { id } })
         .then(file => {
@@ -145,12 +146,12 @@ export function downloadFile(req, res) {
         });
 }
 
-export function getFileList(req, res){
+export function getFileList(req: Request, res: Response){
     const { page=0, list_size=10 } = req.query;
-    const { limit, offset } = getPagination(page-1, list_size);
+    const { limit, offset } = getPagination(+page-1, +list_size);
     File.findAndCountAll({ limit, offset })
         .then(data => {
-            const response = getPagingData(data, page, limit);
+            const response = getPagingData(data, +page, limit);
             return res.send(response);
         })
         .catch(err => {

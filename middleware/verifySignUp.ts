@@ -1,8 +1,9 @@
-import db from './../models/index.js';
+import { NextFunction, Request, Response } from 'express';
+import db from '../models/index';
 
 const User = db.user;
 
-function checkDuplicateUsernameOrEmail(req, res, next) {
+function checkDuplicateUsernameOrEmail(req: Request, res: Response, next: NextFunction) {
 
     let id = req.body.id;
 

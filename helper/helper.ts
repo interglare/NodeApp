@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
+import type { JwtPayload } from "jsonwebtoken";
 
-export function verifyRefresh(id, token) {
+export function verifyRefresh(id: string, token: string) {
     try {
-        const decoded = jwt.verify(token, "refreshSecret");
+        const decoded = jwt.verify(token, "refreshSecret") as JwtPayload;
         return decoded.id === id;
     } catch (error) {
         // console.error(error);
@@ -10,7 +11,7 @@ export function verifyRefresh(id, token) {
     }
 }
 
-export function jwtSignAccessToken(id) {
+export function jwtSignAccessToken(id: string) {
     const accessToken = jwt.sign(
         { id },
         "accessSecret",
@@ -22,7 +23,7 @@ export function jwtSignAccessToken(id) {
     return accessToken;
 }
 
-export function jwtSignRefreshToken(id) {
+export function jwtSignRefreshToken(id: string) {
     const refreshToken = jwt.sign(
         { id },
         "refreshSecret",
@@ -34,14 +35,14 @@ export function jwtSignRefreshToken(id) {
     return refreshToken;
 }
 
-export function getPagination(page, size){
+export function getPagination(page: number, size: number){
     const limit = size ? +size : 3;
     const offset = page ? page * limit : 0;
   
     return { limit, offset };
 };
 
-export function getPagingData(data, page, limit){
+export function getPagingData<T>(data: {count: number, rows: T[] }, page: number, limit: number){
     const { count: totalRows, rows } = data;
     const currentPage = page ? +page : 0;
     const totalPages = Math.ceil(totalRows / limit);
@@ -49,7 +50,7 @@ export function getPagingData(data, page, limit){
     return { totalRows, rows, totalPages, currentPage };
 };
 
-export function validatePassword(pw) {
+export function validatePassword(pw: string) {
 
     return /[A-Z]/       .test(pw) &&
            /[a-z]/       .test(pw) &&
