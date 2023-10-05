@@ -11,6 +11,7 @@ import {
 import { invalidatedTokens } from '../config/jwtBlacklist.config';
 import {Request, Response} from 'express';
 import type { JwtPayload } from "jsonwebtoken";
+import { redisClient } from './../config/redisClient';
 
 type DecodedTokenType = {
   id: string;
@@ -129,14 +130,14 @@ export function info(req: Request, res: Response) {
     .json({ id: decoded.id });
 }
 
-export function logout(req: Request, res: Response) {
+export async function logout(req: Request, res: Response) {
   const authHeader = req.header("authorization");
   const bearerToken = authHeader.split(' ')[1];
   const decoded = jwt.decode(bearerToken) as JwtPayload;
   
   const newRefreshToken = jwtSignRefreshToken(decoded.id); 
-  invalidatedTokens.add(bearerToken);
-
+  // invalidatedTokens.add(bearerToken);
+  await redisClient.setEx(decoded.id,decoded.exp, bearerToken)
   return res.status(200).send({
     refreshToken: newRefreshToken
   });
